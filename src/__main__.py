@@ -56,6 +56,10 @@ def stop(args):
 def debug(args):
     hexname = hexup(args.file)
     trigger('debug', hexname)
+    while True:
+        t = input('>')
+        if t.lower() in ['s', 'step']:
+            trigger('step')
 
 def start(args):
     hexname = hexup(args.file)
