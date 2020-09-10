@@ -10,6 +10,35 @@ import subprocess
 JAR_ENVVAR = 'DIGASMJAR'
 HOST, PORT = 'localhost', 41114
 
+class Debugger:
+    def __init__(self, fname):
+        self._lines = self._load_lines(fname)
+
+    def _load_lines(self, fname):
+        with open(fname, 'r') as fin:
+            for ln, line in enumerate(fin.readlines()):
+                cleaned = line.strip()
+                if cleaned and not cleaned[0] in ['.', ';']:
+                    yield ln+1, line
+
+    def _inx_to_skip(self, line):
+        keyword = line.split(' ')[0]
+        if 'i' in keyword:
+            return 2
+        return 1
+
+    def step(self):
+        ln, nextline = next(self._lines)
+        for _ in range(self._inx_to_skip(nextline)):
+            trigger('step')
+        print(ln, ':', nextline)
+
+    def run(self):
+        while True:
+            t = input('> ')
+            if t.lower() in ['s', 'step']:
+                self.step()
+
 def pack(msg):
     buf = msg.encode('utf8')
     n = struct.pack('>H', len(buf))
@@ -56,10 +85,7 @@ def stop(args):
 def debug(args):
     hexname = hexup(args.file)
     trigger('debug', hexname)
-    while True:
-        t = input('>')
-        if t.lower() in ['s', 'step']:
-            trigger('step')
+    Debugger(args.file).run()
 
 def start(args):
     hexname = hexup(args.file)
