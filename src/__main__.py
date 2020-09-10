@@ -38,14 +38,21 @@ def hexup(fname):
     hexname = os.path.splitext(fname)[0] + '.hex'
     return hexname
 
-# TODO: debug <file>
-# TODO: measure
-# TODO: run
-# TODO: step
-# TODO: stop
+def measure(args):
+    trigger('measure')
+
+def run(args):
+    trigger('run')
+
+def step(args):
+    trigger('step')
+
+def stop(args):
+    trigger('stop')
 
 def debug(args):
-    pass
+    hexname = hexup(args.file)
+    trigger('debug', hexname)
 
 def start(args):
     hexname = hexup(args.file)
@@ -62,6 +69,15 @@ def main():
     start_parser = subparsers.add_parser('start')
     start_parser.add_argument('file', type=str)
     start_parser.set_defaults(func=start)
+
+    debug_parser = subparsers.add_parser('debug')
+    debug_parser.add_argument('file', type=str)
+    debug_parser.set_defaults(func=debug)
+
+    subparsers.add_parser('measure').set_defaults(func=measure)
+    subparsers.add_parser('run').set_defaults(func=run)
+    subparsers.add_parser('step').set_defaults(func=step)
+    subparsers.add_parser('stop').set_defaults(func=stop)
 
     args = parser.parse_args()
 
