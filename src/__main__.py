@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import io
 import os
 import os.path
 import socket
@@ -15,23 +16,35 @@ class Debugger:
         self._lines = self._load_lines(fname)
 
     def _load_lines(self, fname):
+        lines = []
         with open(fname, 'r') as fin:
-            for ln, line in enumerate(fin.readlines()):
+            for line in fin.readlines():
                 cleaned = line.strip()
-                if cleaned and not cleaned[0] in ['.', ';']:
-                    yield ln+1, line
+                if not cleaned or cleaned[0] in ['.', ';'] or cleaned[-1] in [':']:
+                    continue
+                lines.append(line)
+        return lines
 
+    """
     def _inx_to_skip(self, line):
         keyword = line.split(' ')[0]
         if 'i' in keyword:
             return 2
         return 1
+    """
 
     def step(self):
+        _, ln = trigger('step')
+        ln = int(ln)
+        nextline = self._lines[ln]
+        print(ln, ':', nextline)
+
+        """
         ln, nextline = next(self._lines)
         for _ in range(self._inx_to_skip(nextline)):
             trigger('step')
         print(ln, ':', nextline)
+        """
 
     def run(self):
         while True:
@@ -56,7 +69,11 @@ def trigger(evt, arg=None):
             msg = pack(msg)
 
             if s.sendall(msg) is None:
-                break
+                res = s.recv(1024).decode('utf8').split(':')
+                if len(res) < 2:
+                    return res[0], None
+                return res[:2]
+    return None, None
 
 def hexup(fname):
     fname = os.path.realpath(fname)
@@ -77,7 +94,7 @@ def run(args):
     trigger('run')
 
 def step(args):
-    trigger('step')
+    _, rarg = trigger('step')
 
 def stop(args):
     trigger('stop')
