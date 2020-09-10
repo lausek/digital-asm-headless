@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import io
 import os
 import os.path
 import socket
@@ -27,7 +28,11 @@ def trigger(evt, arg=None):
             msg = pack(msg)
 
             if s.sendall(msg) is None:
-                break
+                res = s.recv(1024).decode('utf8').split(':')
+                if len(res) < 2:
+                    return res[0], None
+                return res[:2]
+    return None, None
 
 def hexup(fname):
     fname = os.path.realpath(fname)
@@ -48,7 +53,7 @@ def run(args):
     trigger('run')
 
 def step(args):
-    trigger('step')
+    _, rarg = trigger('step')
 
 def stop(args):
     trigger('stop')
@@ -57,9 +62,9 @@ def debug(args):
     hexname = hexup(args.file)
     trigger('debug', hexname)
     while True:
-        t = input('>')
+        t = input('> ')
         if t.lower() in ['s', 'step']:
-            trigger('step')
+            step(args)
 
 def start(args):
     hexname = hexup(args.file)
