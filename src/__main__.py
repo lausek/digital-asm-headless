@@ -33,13 +33,19 @@ def hexup(fname):
     jar_location = os.environ[JAR_ENVVAR]
     subprocess.run(['java', '-jar', jar_location, fname], check=True)
 
+# TODO: step
+# TODO: debug <file>
+# TODO: run
+# TODO: stop
+# TODO: measure
+
 def start(args):
     fname = args.file
     hexup(fname)
     hexname = os.path.splitext(fname)[0] + '.hex'
     trigger('start', hexname)
 
-if __name__ == '__main__':
+def main():
     if not JAR_ENVVAR in os.environ:
         print('environment variable', JAR_ENVVAR, 'not set')
         exit()
@@ -57,3 +63,6 @@ if __name__ == '__main__':
         args.func(args)
     except AttributeError:
         parser.print_help()
+
+if __name__ == '__main__':
+    main()
