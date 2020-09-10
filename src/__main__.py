@@ -32,8 +32,11 @@ def trigger(evt, arg=None):
 def hexup(fname):
     fname = os.path.realpath(fname)
 
-    jar_location = os.environ[JAR_ENVVAR]
-    subprocess.run(['java', '-jar', jar_location, fname], check=True)
+    try:
+        jar_location = os.environ[JAR_ENVVAR]
+        subprocess.run(['java', '-jar', jar_location, fname], check=True)
+    except subprocess.CalledProcessError:
+        exit()
 
     hexname = os.path.splitext(fname)[0] + '.hex'
     return hexname
