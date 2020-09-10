@@ -30,19 +30,25 @@ def trigger(evt, arg=None):
                 break
 
 def hexup(fname):
+    fname = os.path.realpath(fname)
+
     jar_location = os.environ[JAR_ENVVAR]
     subprocess.run(['java', '-jar', jar_location, fname], check=True)
 
-# TODO: step
+    hexname = os.path.splitext(fname)[0] + '.hex'
+    return hexname
+
 # TODO: debug <file>
-# TODO: run
-# TODO: stop
 # TODO: measure
+# TODO: run
+# TODO: step
+# TODO: stop
+
+def debug(args):
+    pass
 
 def start(args):
-    fname = args.file
-    hexup(fname)
-    hexname = os.path.splitext(fname)[0] + '.hex'
+    hexname = hexup(args.file)
     trigger('start', hexname)
 
 def main():
