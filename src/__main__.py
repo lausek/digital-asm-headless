@@ -23,20 +23,30 @@ class Debugger:
 
     def _load_addr_map(self, fname):
         addr_map = {}
+        addr_prev, line_prev = 0, None
         fname = patch_extension(fname, '.map')
+
         with open(fname, 'r') as fin:
             for entry in json.load(fin):
                 addr, line = entry['addr'], entry['line']
+
+                # TODO: does this have the correct order?
+                if 1 < addr - addr_prev:
+                    for i in range(addr_prev + 1, addr):
+                        addr_map[i] = line_prev
+
                 addr_map[addr] = line
+                addr_prev, line_prev = addr, line
+
         return addr_map
 
     def step(self):
-        _, ln = trigger('step')
+        _, addr = trigger('step')
 
-        ln = int(ln, 16)
-        if ln in self._addr_map:
-            ln = self._addr_map[ln] - 1
-            nextline = self._lines[ln]
+        addr = int(addr, 16)
+        if addr in self._addr_map:
+            ln = self._addr_map[addr]
+            nextline = self._lines[ln - 1]
             print(ln, ':', nextline)
 
     def run(self):
