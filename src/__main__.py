@@ -30,7 +30,6 @@ class Debugger:
             for entry in json.load(fin):
                 addr, line = entry['addr'], entry['line']
 
-                # TODO: does this have the correct order?
                 if 1 < addr - addr_prev:
                     for i in range(addr_prev + 1, addr):
                         addr_map[i] = line_prev
@@ -40,16 +39,18 @@ class Debugger:
 
         return addr_map
 
-    def step(self):
-        _, addr = trigger('step')
-
-        addr = int(addr, 16)
+    def print_line(self, addr):
         if addr in self._addr_map:
             ln = self._addr_map[addr]
             nextline = self._lines[ln - 1]
             print(ln, ':', nextline)
 
+    def step(self):
+        _, addr = trigger('step')
+        self.print_line(int(addr, 16))
+
     def run(self):
+        self.print_line(0)
         while True:
             t = input('> ')
             if t.lower() in ['s', 'step']:
