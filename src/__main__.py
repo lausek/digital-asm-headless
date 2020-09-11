@@ -65,6 +65,8 @@ def debug(args):
         t = input('> ')
         if t.lower() in ['s', 'step']:
             step(args)
+        if t.lower() in ['r', 'run']:
+            run(args)
 
 def start(args):
     hexname = hexup(args.file)
