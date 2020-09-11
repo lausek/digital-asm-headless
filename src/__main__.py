@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import json
 import io
 import os
 import os.path
@@ -14,6 +15,7 @@ HOST, PORT = 'localhost', 41114
 class Debugger:
     def __init__(self, fname):
         self._lines = self._load_lines(fname)
+        self._addr_map = self._load_addr_map(fname)
 
     def _load_lines(self, fname):
         lines = []
@@ -21,30 +23,28 @@ class Debugger:
             for line in fin.readlines():
                 cleaned = line.strip()
                 if not cleaned or cleaned[0] in ['.', ';'] or cleaned[-1] in [':']:
-                    continue
+                    pass
+                    # continue
                 lines.append(line)
         return lines
 
-    """
-    def _inx_to_skip(self, line):
-        keyword = line.split(' ')[0]
-        if 'i' in keyword:
-            return 2
-        return 1
-    """
+    def _load_addr_map(self, fname):
+        addr_map = {}
+        fname = patch_extension(fname, '.map')
+        with open(fname, 'r') as fin:
+            for entry in json.load(fin):
+                addr, line = entry['addr'], entry['line']
+                addr_map[addr] = line
+        return addr_map
 
     def step(self):
         _, ln = trigger('step')
-        ln = int(ln)
-        nextline = self._lines[ln]
-        print(ln, ':', nextline)
 
-        """
-        ln, nextline = next(self._lines)
-        for _ in range(self._inx_to_skip(nextline)):
-            trigger('step')
-        print(ln, ':', nextline)
-        """
+        ln = int(ln, 16)
+        if ln in self._addr_map:
+            ln = self._addr_map[ln] - 1
+            nextline = self._lines[ln]
+            print(ln, ':', nextline)
 
     def run(self):
         while True:
@@ -75,6 +75,10 @@ def trigger(evt, arg=None):
                 return res[:2]
     return None, None
 
+def patch_extension(fname, ext):
+    fname = os.path.realpath(fname)
+    return os.path.splitext(fname)[0] + ext
+
 def hexup(fname):
     fname = os.path.realpath(fname)
 
@@ -84,8 +88,7 @@ def hexup(fname):
     except subprocess.CalledProcessError:
         exit()
 
-    hexname = os.path.splitext(fname)[0] + '.hex'
-    return hexname
+    return patch_extension(fname, '.hex')
 
 def measure(args):
     trigger('measure')
@@ -133,7 +136,7 @@ def main():
 
     try:
         args.func(args)
-    except AttributeError:
+    except AttributeError as e:
         parser.print_help()
 
 if __name__ == '__main__':
