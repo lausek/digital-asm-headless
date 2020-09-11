@@ -18,15 +18,8 @@ class Debugger:
         self._addr_map = self._load_addr_map(fname)
 
     def _load_lines(self, fname):
-        lines = []
         with open(fname, 'r') as fin:
-            for line in fin.readlines():
-                cleaned = line.strip()
-                if not cleaned or cleaned[0] in ['.', ';'] or cleaned[-1] in [':']:
-                    pass
-                    # continue
-                lines.append(line)
-        return lines
+            return [line for line in fin.readlines()]
 
     def _load_addr_map(self, fname):
         addr_map = {}
