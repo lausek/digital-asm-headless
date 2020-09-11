@@ -45,6 +45,10 @@ class Debugger:
             nextline = self._lines[ln - 1]
             print(ln, ':', nextline)
 
+    def run_to_break(self):
+        _, addr = trigger('run')
+        self.print_line(int(addr, 16))
+
     def step(self):
         _, addr = trigger('step')
         self.print_line(int(addr, 16))
@@ -52,8 +56,20 @@ class Debugger:
     def run(self):
         self.print_line(0)
         while True:
-            t = input('> ')
-            if t.lower() in ['s', 'step']:
+            t = input('> ').lower()
+            if t in ['h', 'help']:
+                print('h - help')
+                print('q - quit')
+                print('r - run to next breakpoint')
+                print('s - do a single instruction step')
+
+            elif t in ['q', 'quit']:
+                break
+
+            elif t in ['r', 'run']:
+                self.run_to_break()
+
+            elif t in ['s', 'step']:
                 self.step()
 
 def pack(msg):
