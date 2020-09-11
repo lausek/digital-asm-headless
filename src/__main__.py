@@ -43,7 +43,7 @@ class Debugger:
         if addr in self._addr_map:
             ln = self._addr_map[addr]
             nextline = self._lines[ln - 1]
-            print(ln, ':', nextline)
+            print('0x{:X}: {}'.format(ln, nextline))
 
     def run_to_break(self):
         _, addr = trigger('run')
