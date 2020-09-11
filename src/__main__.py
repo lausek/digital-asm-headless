@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import json
 import io
 import os
 import os.path
@@ -10,6 +11,66 @@ import subprocess
 
 JAR_ENVVAR = 'DIGASMJAR'
 HOST, PORT = 'localhost', 41114
+
+class Debugger:
+    def __init__(self, fname):
+        self._lines = self._load_lines(fname)
+        self._addr_map = self._load_addr_map(fname)
+
+    def _load_lines(self, fname):
+        with open(fname, 'r') as fin:
+            return [line for line in fin.readlines()]
+
+    def _load_addr_map(self, fname):
+        addr_map = {}
+        addr_prev, line_prev = 0, None
+        fname = patch_extension(fname, '.map')
+
+        with open(fname, 'r') as fin:
+            for entry in json.load(fin):
+                addr, line = entry['addr'], entry['line']
+
+                if 1 < addr - addr_prev:
+                    for i in range(addr_prev + 1, addr):
+                        addr_map[i] = line_prev
+
+                addr_map[addr] = line
+                addr_prev, line_prev = addr, line
+
+        return addr_map
+
+    def print_line(self, addr):
+        if addr in self._addr_map:
+            ln = self._addr_map[addr]
+            nextline = self._lines[ln - 1]
+            print(ln, ':', nextline)
+
+    def run_to_break(self):
+        _, addr = trigger('run')
+        self.print_line(int(addr, 16))
+
+    def step(self):
+        _, addr = trigger('step')
+        self.print_line(int(addr, 16))
+
+    def run(self):
+        self.print_line(0)
+        while True:
+            t = input('> ').lower()
+            if t in ['h', 'help']:
+                print('h - help')
+                print('q - quit')
+                print('r - run to next breakpoint')
+                print('s - do a single instruction step')
+
+            elif t in ['q', 'quit']:
+                break
+
+            elif t in ['r', 'run']:
+                self.run_to_break()
+
+            elif t in ['s', 'step']:
+                self.step()
 
 def pack(msg):
     buf = msg.encode('utf8')
@@ -34,6 +95,10 @@ def trigger(evt, arg=None):
                 return res[:2]
     return None, None
 
+def patch_extension(fname, ext):
+    fname = os.path.realpath(fname)
+    return os.path.splitext(fname)[0] + ext
+
 def hexup(fname):
     fname = os.path.realpath(fname)
 
@@ -43,8 +108,7 @@ def hexup(fname):
     except subprocess.CalledProcessError:
         exit()
 
-    hexname = os.path.splitext(fname)[0] + '.hex'
-    return hexname
+    return patch_extension(fname, '.hex')
 
 def measure(args):
     trigger('measure')
@@ -61,12 +125,7 @@ def stop(args):
 def debug(args):
     hexname = hexup(args.file)
     trigger('debug', hexname)
-    while True:
-        t = input('> ')
-        if t.lower() in ['s', 'step']:
-            step(args)
-        if t.lower() in ['r', 'run']:
-            run(args)
+    Debugger(args.file).run()
 
 def start(args):
     hexname = hexup(args.file)
@@ -97,7 +156,7 @@ def main():
 
     try:
         args.func(args)
-    except AttributeError:
+    except AttributeError as e:
         parser.print_help()
 
 if __name__ == '__main__':
