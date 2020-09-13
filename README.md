@@ -5,7 +5,7 @@ A python script to control [Digital](https://github.com/hneemann/Digital).
 **Requirements**
 
 - [Assembler](https://github.com/hneemann/Assembler) for compiling code
-- &gt;Java 9
+- &gt;= Java 9
 
 ## Setup
 
