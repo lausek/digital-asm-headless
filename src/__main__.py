@@ -127,6 +127,21 @@ def debug(args):
     trigger('debug', hexname)
     Debugger(args.file).run()
 
+def eval_code(args):
+    import tempfile
+    code = args.code.replace(';', '\n')
+
+    # add breakpoint at end of script
+    code += '\nbrk'
+
+    with tempfile.NamedTemporaryFile(suffix='.asm', delete=False) as f:
+        f.write(code.encode('utf8'))
+        f.flush()
+
+        hexname = hexup(f.name)
+        trigger('debug', hexname)
+        Debugger(f.name).run()
+
 def start(args):
     hexname = hexup(args.file)
     trigger('start', hexname)
@@ -139,13 +154,17 @@ def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    start_parser = subparsers.add_parser('start')
-    start_parser.add_argument('file', type=str)
-    start_parser.set_defaults(func=start)
-
-    debug_parser = subparsers.add_parser('debug')
+    debug_parser = subparsers.add_parser('debug', help='start an interactive debug session. press h for help.')
     debug_parser.add_argument('file', type=str)
     debug_parser.set_defaults(func=debug)
+
+    eval_parser = subparsers.add_parser('eval', help='run code as a temporary program. use ; to separate lines. automatically adds a breakpoint at the end of the script.')
+    eval_parser.add_argument('code', type=str)
+    eval_parser.set_defaults(func=eval_code)
+
+    start_parser = subparsers.add_parser('start', help='start an .asm file in the simulator.')
+    start_parser.add_argument('file', type=str)
+    start_parser.set_defaults(func=start)
 
     subparsers.add_parser('measure').set_defaults(func=measure)
     subparsers.add_parser('run').set_defaults(func=run)
@@ -154,9 +173,9 @@ def main():
 
     args = parser.parse_args()
 
-    try:
+    if hasattr(args, 'func'):
         args.func(args)
-    except AttributeError as e:
+    else:
         parser.print_help()
 
 if __name__ == '__main__':
