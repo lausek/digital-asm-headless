@@ -134,7 +134,7 @@ def eval_code(args):
     # add breakpoint at end of script
     code += '\nbrk'
 
-    with tempfile.NamedTemporaryFile(suffix='.asm', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix='.asm') as f:
         f.write(code.encode('utf8'))
         f.flush()
 
