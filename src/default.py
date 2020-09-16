@@ -1,0 +1,2 @@
+JAR_ENVVAR = 'DIGASMJAR'
+HOST, PORT = 'localhost', 41114
