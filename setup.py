@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='digasm',
-    version='0.0.1',
+    version='0.0.2',
     author='lausek',
     description='headless interface for the Digital simulator',
     url='https://github.com/lausek/digital-asm-headless',

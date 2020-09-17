@@ -5,9 +5,13 @@ import struct
 import subprocess
 
 try:
+    from .debugger import *
     from .default import *
+    from .util import *
 except ImportError:
+    from debugger import *
     from default import *
+    from util import *
 
 def pack(msg):
     buf = msg.encode('utf8')
@@ -31,10 +35,6 @@ def trigger(evt, arg=None):
                     return res[0], None
                 return res[:2]
     return None, None
-
-def patch_extension(fname, ext):
-    fname = os.path.realpath(fname)
-    return os.path.splitext(fname)[0] + ext
 
 def hexup(fname):
     fname = os.path.realpath(fname)

@@ -1,10 +1,9 @@
 import json
 
 try:
-    from .cmd import *
+    from .util import *
 except ImportError:
-    from cmd import *
-#import io
+    from util import *
 
 class Debugger:
     def __init__(self, fname):
@@ -40,10 +39,18 @@ class Debugger:
             print('0x{:X}: {}'.format(ln, nextline))
 
     def run_to_break(self):
+        try:
+            from .cmd import trigger
+        except ImportError:
+            from cmd import trigger
         _, addr = trigger('run')
         self.print_line(int(addr, 16))
 
     def step(self):
+        try:
+            from .cmd import trigger
+        except ImportError:
+            from cmd import trigger
         _, addr = trigger('step')
         self.print_line(int(addr, 16))
 
